@@ -5,14 +5,13 @@ using UnityEngine.InputSystem;
 public class PlayerMovement : MonoBehaviour
 {
     [SerializeField]
-    private float _speed = 5f;
+    private float _baseSpeed = 5f; // Minimum speed
 
     [SerializeField]
-    private float _rotationSpeed = 1000f;
+    private float _maxSpeed = 25f; // Maximum speed
 
-    private float[] _speedMultipliers = { 1f, 2f, 4f }; // Multipliers for speed (1x, 2x, 4x)
-    private int _currentSpeedIndex = 0; // To track which speed we're on
-
+    [SerializeField]
+    private float _speedChangeRate = 2f; // Rate of speed change when pressing or holding shift/space
 
     private Rigidbody2D _rigidbody;
     private Vector2 _movementInput;
@@ -26,21 +25,35 @@ public class PlayerMovement : MonoBehaviour
     private void Awake()
     {
         _rigidbody = GetComponent<Rigidbody2D>();
+        playerVelocity = _baseSpeed; // Initialize player speed to base speed
     }
 
     private void Update()
     {
-        // Toggle speed multipliers on pressing "Space"
-        if (Input.GetKeyDown(KeyCode.Space))
-        {
-            _currentSpeedIndex = (_currentSpeedIndex + 1) % _speedMultipliers.Length;
-        }
+        HandleSpeedChange();
     }
 
     private void FixedUpdate()
     {
         SetPlayerVelocity();
         RotateInDirectionOfInput();
+    }
+
+    private void HandleSpeedChange()
+    {
+        // Increase speed when Shift is pressed or held
+        if (Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift))
+        {
+            playerVelocity += _speedChangeRate * Time.deltaTime;
+            playerVelocity = Mathf.Clamp(playerVelocity, _baseSpeed, _maxSpeed);
+        }
+
+        // Decrease speed when Space is pressed or held
+        if (Input.GetKey(KeyCode.Space))
+        {
+            playerVelocity -= _speedChangeRate * Time.deltaTime;
+            playerVelocity = Mathf.Clamp(playerVelocity, _baseSpeed, _maxSpeed);
+        }
     }
 
     private void SetPlayerVelocity()
@@ -50,9 +63,6 @@ public class PlayerMovement : MonoBehaviour
                     _movementInput,
                     ref _movementInputSmoothVelocity,
                     0.1f);
-        
-        // Set the player velocity to base speed multiplied by the current speed multiplier
-        playerVelocity = _speed * _speedMultipliers[_currentSpeedIndex];
 
         _rigidbody.velocity = _smoothedMovementInput * playerVelocity;
     }
@@ -62,7 +72,7 @@ public class PlayerMovement : MonoBehaviour
         if (_movementInput != Vector2.zero)
         {
             Quaternion targetRotation = Quaternion.LookRotation(transform.forward, _smoothedMovementInput);
-            Quaternion rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, _rotationSpeed * Time.deltaTime);
+            Quaternion rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, 1000f * Time.deltaTime);
 
             _rigidbody.MoveRotation(rotation);
         }
@@ -75,7 +85,7 @@ public class PlayerMovement : MonoBehaviour
 
     void OnTriggerEnter2D(Collider2D other)
     {
-        if(other.gameObject.CompareTag("Coin"))
+        if (other.gameObject.CompareTag("Coin"))
         {
             Destroy(other.gameObject);
             cm.coinCount++;

@@ -1,11 +1,11 @@
-using System.Collections;
-using UnityEngine;
+using System.Collections.Generic;
 using TMPro;
-using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using UnityEngine.SceneManagement; // For scene management
+using UnityEngine.UI;
+using UnityEngine;
+using System.Collections;
 
-public class RunningText : MonoBehaviour
+public class RunningTextForMission : MonoBehaviour
 {
     [Header("Text Settings")]
     [TextArea(5, 10)]
@@ -15,33 +15,26 @@ public class RunningText : MonoBehaviour
     [Header("UI References")]
     public TextMeshProUGUI textDisplay; // TextMeshProUGUI component inside the ScrollRect
     public ScrollRect scrollRect; // ScrollRect component for scrolling
-    public Button nextSceneButton; // Button to go to the next scene
 
     private int currentLineIndex = 0; // Tracks the current line
     private bool isAnimating = false; // Prevent multiple inputs during animation
 
+    // Event to notify when all lines are displayed
+    public System.Action OnAllLinesDisplayed;
+
     private void Start()
     {
-        // Ensure required components are assigned
-        if (textDisplay == null || scrollRect == null || nextSceneButton == null)
+        if (textDisplay == null || scrollRect == null)
         {
-            Debug.LogError("TextDisplay, ScrollRect, or NextSceneButton not assigned!");
+            Debug.LogError("TextDisplay or ScrollRect not assigned!");
             return;
         }
 
-        // Hide the button initially
-        nextSceneButton.gameObject.SetActive(false);
-
-        // Add a listener to the button
-        nextSceneButton.onClick.AddListener(NextScene);
-
-        // Start displaying the first line
         DisplayNextLine();
     }
 
     private void Update()
     {
-        // Check for Enter key press or mouse click (except on the scrollbar)
         if (!isAnimating && (Input.GetKeyDown(KeyCode.Return) || Input.GetMouseButtonDown(0)))
         {
             if (!IsPointerOverScrollbar())
@@ -53,7 +46,6 @@ public class RunningText : MonoBehaviour
 
     private void DisplayNextLine()
     {
-        // Check if there are more lines to display
         if (currentLineIndex < lines.Length)
         {
             StartCoroutine(DisplayTextLetterByLetter(lines[currentLineIndex]));
@@ -61,8 +53,8 @@ public class RunningText : MonoBehaviour
         }
         else
         {
-            // All lines have been displayed, show the "Next Scene" button
-            nextSceneButton.gameObject.SetActive(true);
+            // Notify when all lines are displayed
+            OnAllLinesDisplayed?.Invoke();
         }
     }
 
@@ -70,60 +62,48 @@ public class RunningText : MonoBehaviour
     {
         isAnimating = true;
 
-        // Clear the current text
         textDisplay.text = "";
 
-        // Loop through each character and display it
         foreach (char letter in line)
         {
-            textDisplay.text += letter; // Add the letter to the text
-            UpdateContentSizeAndScroll(); // Adjust content size and scroll dynamically
-            yield return new WaitForSeconds(delayBetweenLetters); // Wait before showing the next letter
+            textDisplay.text += letter;
+            UpdateContentSizeAndScroll();
+            yield return new WaitForSeconds(delayBetweenLetters);
         }
 
-        isAnimating = false; // Animation complete
+        isAnimating = false;
     }
 
     private void UpdateContentSizeAndScroll()
     {
-        // Update the size of the Content based on its text
         textDisplay.ForceMeshUpdate();
         float textHeight = textDisplay.preferredHeight;
 
         RectTransform contentRect = textDisplay.GetComponent<RectTransform>();
         contentRect.sizeDelta = new Vector2(contentRect.sizeDelta.x, textHeight);
 
-        // Ensure the ScrollRect scrolls dynamically to show the latest part
         Canvas.ForceUpdateCanvases();
-        scrollRect.verticalNormalizedPosition = 0f; // Set to bottom to simulate real-time scrolling
+        scrollRect.verticalNormalizedPosition = 0f;
     }
 
     private bool IsPointerOverScrollbar()
     {
-        // Check if the mouse is over a UI element
         if (EventSystem.current != null && EventSystem.current.IsPointerOverGameObject())
         {
-            // Check if the pointer is over the scrollbar
             PointerEventData pointerEventData = new PointerEventData(EventSystem.current);
             pointerEventData.position = Input.mousePosition;
 
-            var results = new System.Collections.Generic.List<RaycastResult>();
+            var results = new List<RaycastResult>();
             EventSystem.current.RaycastAll(pointerEventData, results);
 
             foreach (var result in results)
             {
                 if (result.gameObject.GetComponent<Scrollbar>() != null)
                 {
-                    return true; // Pointer is over a scrollbar
+                    return true;
                 }
             }
         }
-        return false; // Pointer is not over a scrollbar
-    }
-
-    public void NextScene()
-    {
-        // Load the next scene (set your scene name or index here)
-        SceneManager.LoadScene("TravelMap"); // Replace "NextSceneName" with the actual scene name or index
+        return false;
     }
 }

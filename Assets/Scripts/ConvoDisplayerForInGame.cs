@@ -1,7 +1,9 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class ConvoDisplayer : MonoBehaviour
+public class ConvoDisplayerForInGame : MonoBehaviour
 {
     public GameObject canvasToActivate; // Assign the Canvas in the Inspector
     public GameObject canvasToDeActivate;
@@ -9,6 +11,12 @@ public class ConvoDisplayer : MonoBehaviour
     private Vector3 playerLastPosition;
     public GameObject player; // Reference to the player GameObject
     private Rigidbody2D playerRigidbody; // Optional: Reference to player's Rigidbody2D
+    public GameObject dialogueBox;
+
+    public GameObject MissionComplete;
+    public GameObject MissionFailed;
+
+
 
     void Start()
     {
@@ -16,6 +24,7 @@ public class ConvoDisplayer : MonoBehaviour
         {
             canvasToActivate.SetActive(false); // Ensure the canvas is initially disabled
             canvasToDeActivate.SetActive(true);
+            MissionComplete.SetActive(false);
         }
 
         if (player != null)
@@ -50,6 +59,7 @@ public class ConvoDisplayer : MonoBehaviour
             {
                 canvasToActivate.SetActive(true); // Activate the canvas
                 canvasToDeActivate.SetActive(false);
+                dialogueBox.SetActive(false);
             }
         }
     }
@@ -74,11 +84,37 @@ public class ConvoDisplayer : MonoBehaviour
         }
     }
 
-    public void nextScene()
+    public void Return_Mission_Complete()
     {
-        if (SceneManager.GetActiveScene().name != "TravelMap") // Prevent reloading the same scene
+        MissionComplete.SetActive(false);
+        canvasToDeActivate.SetActive(true);
+
+        if (player != null)
         {
-            SceneManager.LoadSceneAsync("TravelMap");
+            if (playerRigidbody != null)
+            {
+                playerRigidbody.velocity = Vector2.zero; // Reset velocity if Rigidbody2D exists
+            }
+
+            player.transform.position = playerLastPosition; // Restore the player's position
+            Debug.Log("Player position restored: " + playerLastPosition);
+        }
+    }
+
+    public void Return_Mission_Failed()
+    {
+        MissionFailed.SetActive(false);
+        canvasToDeActivate.SetActive(true);
+
+        if (player != null)
+        {
+            if (playerRigidbody != null)
+            {
+                playerRigidbody.velocity = Vector2.zero; // Reset velocity if Rigidbody2D exists
+            }
+
+            player.transform.position = playerLastPosition; // Restore the player's position
+            Debug.Log("Player position restored: " + playerLastPosition);
         }
     }
 }
