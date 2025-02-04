@@ -11,4 +11,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/TravelMap.unity
     guid: 2cda990e2423bbf4892e6590ba056729
+  - enabled: 1
+    path: Assets/Scenes/Brushing Scene.unity
+    guid: beb3469f36c61f3438aabae633ea58ba
+  - enabled: 1
+    path: Assets/Scenes/Eating.unity
+    guid: 852b4851afe0f9e439e94a729091e637
   m_configObjects: {}

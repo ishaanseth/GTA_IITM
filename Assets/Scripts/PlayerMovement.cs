@@ -2,6 +2,7 @@ using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+
 public class PlayerMovement : MonoBehaviour
 {
     [SerializeField]
@@ -28,6 +29,10 @@ public class PlayerMovement : MonoBehaviour
         playerVelocity = _baseSpeed; // Initialize player speed to base speed
     }
 
+    private void Start()
+    {
+        PlayerPrefs.DeleteAll();
+    }
     private void Update()
     {
         HandleSpeedChange();

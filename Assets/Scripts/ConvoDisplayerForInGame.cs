@@ -16,6 +16,8 @@ public class ConvoDisplayerForInGame : MonoBehaviour
     public GameObject MissionComplete;
     public GameObject MissionFailed;
 
+    public InstiHospital InstiHospital;
+
 
 
     void Start()
@@ -23,7 +25,6 @@ public class ConvoDisplayerForInGame : MonoBehaviour
         if (canvasToActivate != null)
         {
             canvasToActivate.SetActive(false); // Ensure the canvas is initially disabled
-            canvasToDeActivate.SetActive(true);
             MissionComplete.SetActive(false);
         }
 
@@ -113,7 +114,7 @@ public class ConvoDisplayerForInGame : MonoBehaviour
                 playerRigidbody.velocity = Vector2.zero; // Reset velocity if Rigidbody2D exists
             }
 
-            player.transform.position = playerLastPosition; // Restore the player's position
+            player.transform.position = InstiHospital.playerLastPosition; // Restore the player's position
             Debug.Log("Player position restored: " + playerLastPosition);
         }
     }

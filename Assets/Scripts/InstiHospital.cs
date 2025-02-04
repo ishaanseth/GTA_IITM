@@ -20,7 +20,7 @@ public class InstiHospital : MonoBehaviour
     public CoinManager cm;
     private bool isAttached = false;
     private bool isPlayerInTrigger = false;
-    private Vector3 playerLastPosition;
+    public Vector3 playerLastPosition;
     private Vector3 originalPosition; // Store the original position of the object
     private Quaternion originalRotation; // Store the original rotation of the object
     private Rigidbody2D playerRigidbody;
@@ -101,7 +101,7 @@ public class InstiHospital : MonoBehaviour
         }
 
         // Attach this object to the player when Enter key is pressed
-        if (Input.GetKeyDown(KeyCode.Return) && !isAttached && isInside)
+        if (Input.GetKeyDown(KeyCode.Return) && !isAttached && isInside && !canvasToActivate.activeSelf)
         {
             AttachToPlayer();
         }
@@ -235,6 +235,9 @@ public class InstiHospital : MonoBehaviour
 
     private void ShowMissionComplete()
     {
+        Destroy(this);
+        canvasToActivate.SetActive(false);
+        dialogueBox.SetActive(false );
         dropOff.SetActive(false);
         // Activate the MissionComplete canvas
         if (missionCompleteCanvas != null)
@@ -273,7 +276,7 @@ public class InstiHospital : MonoBehaviour
         {
             isPlayerInTrigger = true;
             playerLastPosition = other.transform.position;
-            Debug.Log("Player position saved: " + playerLastPosition);
+            Debug.Log("Player position saved 465456454: " + playerLastPosition);
             isInside = true;
         }
     }

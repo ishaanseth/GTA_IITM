@@ -131,11 +131,7 @@ public class SecurityScript : MonoBehaviour
 
     private void ChasePlayer()
     {
-        if (player == null)
-        {
-            ActivateCatchZone();
-            return;
-        }
+        if (player == null) return;
 
         chaseTimer -= Time.deltaTime;
 
@@ -146,17 +142,19 @@ public class SecurityScript : MonoBehaviour
 
         if (slidingTimer != null)
         {
-            float scaleFactor = chaseTimer / chaseDuration; // Calculate the size based on the remaining time
+            float scaleFactor = Mathf.Clamp01(chaseTimer / chaseDuration); // Ensure scale doesn't go below 0
             slidingTimer.localScale = new Vector3(scaleFactor, 1f, 1f); // Update the width only
         }
 
-        if (chaseTimer <= 0)
+        if (chaseTimer > 0)
         {
-            ActivateCatchZone();
-            return;
+            transform.position = Vector3.MoveTowards(transform.position, player.position, chaseSpeed * Time.deltaTime);
+            DetectCatchZone(); // Check if player is in the catch zone
         }
-
-        transform.position = Vector3.MoveTowards(transform.position, player.position, chaseSpeed * Time.deltaTime);
+        else
+        {
+            StopChase(); // Timer has expired; stop chasing
+        }
     }
 
     private void DetectCatchZone()
@@ -165,9 +163,29 @@ public class SecurityScript : MonoBehaviour
 
         float distanceToPlayer = Vector3.Distance(transform.position, player.position);
 
-        if (distanceToPlayer <= catchZoneRange)
+        if (distanceToPlayer <= catchZoneRange && isChasing)
         {
-            ActivateCatchZone();
+            ActivateCatchZone(); // Only activate catch zone if the player is within range
+        }
+    }
+
+    private void StopChase()
+    {
+        isChasing = false;
+
+        if (chaseTimerText != null)
+        {
+            chaseTimerText.enabled = false; // Deactivate the timer
+        }
+
+        if (SecurityUI != null)
+        {
+            SecurityUI.SetActive(false);
+        }
+
+        if (slidingTimer != null)
+        {
+            slidingTimer.gameObject.SetActive(false); // Deactivate the sliding timer
         }
     }
 
@@ -201,17 +219,26 @@ public class SecurityScript : MonoBehaviour
 
     private void DragPlayerToAdminBuilding()
     {
+        float distanceToPlayer = Vector3.Distance(transform.position, player.position);
 
-        if (adminBuilding == null || player == null) return;
-
-        // Move both the player and security guard to the admin building
-        transform.position = Vector3.MoveTowards(transform.position, adminBuilding.position, patrolSpeed * Time.deltaTime);
-        player.position = transform.position;
-
-        if (Vector3.Distance(transform.position, adminBuilding.position) < 0.1f)
-        {
-            CompleteDragToAdminBuilding();
+        if (adminBuilding == null || player == null)
+        { 
+            return; 
         }
+
+        if (distanceToPlayer <= catchZoneRange)
+        {
+            // Move both the player and security guard to the admin building
+            transform.position = Vector3.MoveTowards(transform.position, adminBuilding.position, patrolSpeed * Time.deltaTime);
+            player.position = transform.position;
+
+            if (Vector3.Distance(transform.position, adminBuilding.position) < 0.1f)
+            {
+                CompleteDragToAdminBuilding();
+            }
+        }
+
+        
     }
 
     private void CompleteDragToAdminBuilding()
